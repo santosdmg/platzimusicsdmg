@@ -17,11 +17,14 @@ export default class CommentList extends Component {
     }
     componentDidMount(){
         this.updateDataSource(this.props.comments);
+
     }
     componentWillReceiveProps(newProps) {
         if(newProps.comments !== this.props.comments) {
             this.updateDataSource(newProps.comments);
+
         }
+        
     }
 
     updateDataSource = data => {

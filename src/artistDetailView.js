@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import {
   View,
   StyleSheet,
-  Platform,
   TextInput,
   Text,
   TouchableOpacity,
@@ -19,7 +18,18 @@ export default class ArtistDetailView extends Component {
     }
 
     componentDidMount() {
+        //cuando se agrega un nuevo comentario
         this.getArtistCommentsRef().on('child_added', this.addComment);
+        //llenar array de comentarios para mostrarlas
+        this.getArtistCommentsRef().once('value', snapshot =>{
+            var comments = [];
+            snapshot.forEach( comment => {
+                comments = comments.concat(comment.val())
+            })
+            this.setState({
+                comments,
+            })
+        })
     }
 
     componentWillUnmount() {
@@ -56,19 +66,9 @@ export default class ArtistDetailView extends Component {
     render() {
         const artist = this.props.artist;
         const { comments } = this.state
-        const isAndroid = Platform.OS === 'android';
-        container = (styles) =>{
-            if(isAndroid){
-                return styles.containerandroid
-            }
-            else {
-                return styles.containerios
-            }
-        }
         return (
-            <View style={container(styles)}>
+            <View style={styles.container}>
                 <ArtistBox artist={artist} />
-                <Text style={styles.header}>Comentarios</Text>
                 <CommentList comments={comments} />
                 <View style={styles.inputContainer}>
                     <TextInput
@@ -88,14 +88,9 @@ export default class ArtistDetailView extends Component {
 }
 
 const styles = StyleSheet.create({
-    containerios: {
+    container: {
         flex: 1,
         paddingTop: 65,
-        backgroundColor: 'lightgray',
-    },
-    containerandroid: {
-        flex: 1,
-        paddingTop: 20,
         backgroundColor: 'lightgray',
     },
     inputContainer: {
@@ -108,10 +103,5 @@ const styles = StyleSheet.create({
     input:{
         flex: 1,
         height: 50,
-    },
-    header: {
-        fontSize: 20,
-        paddingHorizontal: 15,
-        marginVertical: 10,
     },
 });
