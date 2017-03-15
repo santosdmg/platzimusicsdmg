@@ -18,7 +18,18 @@ export default class ArtistDetailView extends Component {
     }
 
     componentDidMount() {
+        //cuando se agrega un nuevo comentario
         this.getArtistCommentsRef().on('child_added', this.addComment);
+        //llenar array de comentarios para mostrarlas
+        this.getArtistCommentsRef().once('value', snapshot =>{
+            var comments = [];
+            snapshot.forEach( comment => {
+                comments = comments.concat(comment.val())
+            })
+            this.setState({
+                comments,
+            })
+        })
     }
 
     componentWillUnmount() {

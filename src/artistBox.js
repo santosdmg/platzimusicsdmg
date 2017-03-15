@@ -8,11 +8,26 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { firebaseDatabase, firebaseAuth } from './firebase'
+import Share, { ShareSheet, Button} from 'react-native-share'
 
 export default class artistBox extends Component {
     state = {
         liked: false,
-        likeCount: 0
+        likeCount: 0,
+        comenttot: 0,
+        visible: false,
+    }
+
+    onCancel() {
+        this.setState({
+            visible:false
+        });
+    }
+
+    onOpen() {
+        this.setState({
+            visible:true,
+        });
     }
 
     componentWillMount() {
@@ -24,8 +39,30 @@ export default class artistBox extends Component {
                     likeCount: artist.likeCount,
                     liked: artist.likes && artist.likes[uid]
                 })
+
             }
         })
+    }
+
+    componentDidMount() {
+        this.getArtistCommentsRef().on('child_added', this.countComment)
+    }
+
+    countComment = () => {
+        let  commentCount = 0;
+
+        this.getArtistCommentsRef().once('value', snapshot => {
+            snapshot.forEach( comment => {
+                commentCount = commentCount+1;
+            })
+            this.setState({
+                comenttot: commentCount,
+            })
+        })
+    }
+
+    componentWillUnmount() {
+        this.getArtistCommentsRef().off('child_added', this.countComment)
     }
 
     handlePressLike = () => {
@@ -35,6 +72,11 @@ export default class artistBox extends Component {
     getArtistRef = () => {
         const { id } = this.props.artist
         return firebaseDatabase.ref(`artist/${id}`)
+    }
+
+    getArtistCommentsRef = () => {
+        const { id } = this.props.artist
+        return firebaseDatabase.ref(`comments/${id}`)
     }
 
     toggleLike = (liked) => {
@@ -61,13 +103,23 @@ export default class artistBox extends Component {
         });
     }
 
+
+
     render() {
-        const { image, name, likes, comments } = this.props.artist;
+        const { image, name, url } = this.props.artist;
+        let shareOptions = {
+            title: name,
+            message: name,
+            url: url,
+            subject: "Compartir Artista"
+        };
+
+
         const likeIcon = this.state.liked ?
             <Icon name="ios-heart" size={30} color="#e74c3c" /> :
             <Icon name="ios-heart-outline" size={30} color="gray" />
 
-        const { likeCount } = this.state
+        const { likeCount, comenttot } = this.state
         return (
             <View style={styles.artistBox}>
                 <Image style={styles.image} source={{ uri: image}} />
@@ -82,7 +134,14 @@ export default class artistBox extends Component {
                         </View>
                         <View style={styles.iconsInfo}>
                             <Icon name="ios-chatboxes-outline" size={30} color="gray" />
-                            <Text style={styles.count}>{comments}</Text>
+                            <Text style={styles.count}>{comenttot}</Text>
+                        </View>
+                        <View style={styles.iconsInfo}>
+                            <TouchableOpacity onPress={()=>{
+                                Share.open(shareOptions)
+                            }}>
+                                <Icon name="md-share" size={30} color="#7f8c8d" />
+                            </TouchableOpacity>
                         </View>
                     </View>
                 </View>
@@ -90,7 +149,6 @@ export default class artistBox extends Component {
         );
     }
 }
-
 const styles = StyleSheet.create({
     image: {
         width: 150,
@@ -124,7 +182,7 @@ const styles = StyleSheet.create({
     rowInfo: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginHorizontal: 40,
+        marginHorizontal: 30,
         paddingTop: 15,
     },
     iconsInfo: {

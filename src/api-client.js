@@ -1,4 +1,7 @@
-const URL = 'https://ws.audioscrobbler.com/2.0/?method=geo.gettopartists&country=spain&api_key=5014f912df20248b73ede1f1d0a085ed&format=json'
+
+const pais = "Guatemala"
+const apiKey = '5014f912df20248b73ede1f1d0a085ed'
+const URL = 'https://ws.audioscrobbler.com/2.0/?method=geo.gettopartists&country='+pais+'&api_key='+apiKey+'&format=json'
 
 function getArtist() {
     return fetch(URL)
@@ -9,8 +12,7 @@ function getArtist() {
                 id: artist.mbid,
                 name: artist.name,
                 image: artist.image[3]['#text'],
-                likes: 0,
-                comments: 0,
+                url: artist.url,
             }
         }))
 }
